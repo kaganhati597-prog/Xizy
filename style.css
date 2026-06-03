@@ -1,6 +1,3 @@
-/* ==========================================================================
-   GENEL TEMA AYARLARI
-   ========================================================================== */
 body {
     margin: 0; padding: 0;
     background-color: #000; color: #fff;
@@ -23,39 +20,21 @@ body {
 #hp-bar { width: 150px; height: 20px; background-color: #ff0000; position: relative; margin-left: 10px; }
 #hp-bar::after { content: ''; position: absolute; left: 0; top: 0; height: 100%; width: 100%; background-color: #ffff00; }
 
-/* Boss Düzeni ve Üstündeki 100 HP'lik Can Barı */
+/* Boss Düzeni */
 #boss-area { display: flex; align-items: center; justify-content: center; gap: 25px; margin-bottom: 20px; height: 180px; }
 #boss-wrapper { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+#boss-hp-container { width: 120px; height: 12px; border: 2px solid #fff; background: #ff0000; position: relative; }
+#boss-hp-bar { height: 100%; width: 100%; background: #00ff00; transition: width 0.2s ease-in-out; }
+#boss-character { width: 140px; height: 140px; background-image: url('boss.jpg'); background-size: contain; background-repeat: no-repeat; background-position: center; animation: float 3s ease-in-out infinite; }
 
-#boss-hp-container {
-    width: 120px; height: 12px; border: 2px solid #fff; background: #ff0000; position: relative;
-}
-#boss-hp-bar {
-    height: 100%; width: 100%; background: #00ff00; /* Canı tamken yeşil */
-    transition: width 0.2s ease-in-out;
-}
-
-#boss-character {
-    width: 140px; height: 140px;
-    background-image: url('boss.jpg'); background-size: contain; background-repeat: no-repeat; background-position: center;
-    animation: float 3s ease-in-out infinite;
-}
-
-/* Konuşma Balonu */
-#speech-bubble {
-    position: relative; background: #fff; color: #000; font-weight: bold;
-    padding: 12px; border-radius: 8px; width: 200px; min-height: 50px; border: 3px solid #000;
-}
-#speech-bubble::after {
-    content: ''; position: absolute; left: -12px; top: 50%; transform: translateY(-50%);
-    width: 0; height: 0; border-style: solid; border-width: 8px 12px 8px 0; border-color: transparent #fff transparent transparent;
-}
+#speech-bubble { position: relative; background: #fff; color: #000; font-weight: bold; padding: 12px; border-radius: 8px; width: 200px; min-height: 50px; border: 3px solid #000; }
+#speech-bubble::after { content: ''; position: absolute; left: -12px; top: 50%; transform: translateY(-50%); width: 0; height: 0; border-style: solid; border-width: 8px 12px 8px 0; border-color: transparent #fff transparent transparent; }
 
 @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-10px); } }
 
 /* Savaş Kutusu */
 #battle-box { width: 400px; height: 200px; border: 4px solid #fff; background-color: #000; position: relative; overflow: hidden; }
-#player-soul { width: 16px; height: 16px; position: absolute; background-color: #ff0000; transform: rotate(-45deg); }
+#player-soul { width: 16px; height: 16px; position: absolute; background-color: #ff0000; transform: rotate(-45deg); z-index: 10; }
 #player-soul::before, #player-soul::after { content: ""; width: 16px; height: 16px; background-color: #ff0000; border-radius: 50%; position: absolute; }
 #player-soul::before { top: -8px; left: 0; }
 #player-soul::after { left: 8px; top: 0; }
@@ -67,35 +46,39 @@ body {
 .menu-btn:hover { background: #ffb800; color: #000; }
 .hidden { display: none !important; }
 
-/* Mobil Joystick Alanı */
+/* Mobil Kontroller */
 #mobile-controls { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 999; }
-#joystick-zone { position: absolute; width: 100px; height: 100px; pointer-events: auto; }
+#joystick-zone { position: absolute; width: 120px; height: 120px; pointer-events: auto; }
 
-/* ==========================================================================
-   YENİ GÖRSEL TABANLI MERMİLER VE TEHLİKE İŞARETİ
-   ========================================================================== */
+/* Mermiler */
 .projectile { position: absolute; background-size: contain; background-repeat: no-repeat; background-position: center; }
+.projectile.bone { background-image: url('bone.jpg'); }
+.projectile.blaster { background-image: url('blaster.jpg'); width: 55px !important; height: 55px !important; z-index: 5; transition: transform 0.1s linear; }
 
-/* Kemik Fotoğrafı Düzenlemesi */
-.projectile.bone {
-    background-image: url('bone.jpg');
+/* Ok / Mızrak Stili */
+.projectile.spear {
+    width: 8px; height: 30px;
+    background-color: #00bfff; /* Undertale mızrak mavisi */
+    border-radius: 2px;
 }
 
-/* Gaster Blaster Fotoğrafı Düzenlemesi */
-.projectile.blaster {
-    background-image: url('blaster.jpg');
-    width: 45px !important;
-    height: 45px !important;
+/* GASTER BLASTER LAZER IŞINI */
+.blaster-laser {
+    position: absolute;
+    background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,1) 20%, rgba(255,255,255,1) 80%, rgba(255,255,255,0) 100%);
+    box-shadow: 0 0 20px #fff, 0 0 40px #00bfff;
+    transform-origin: top center;
+    pointer-events: none;
+    z-index: 4;
+    width: 30px; /* Lazer kalınlığı */
 }
 
-/* Uyarı Ünlemi Çizgisi */
+/* Tehlike Uyarı Çizgisi */
 .warning-line {
     position: absolute;
     color: #ff0000; font-size: 24px; font-weight: bold;
     display: flex; align-items: center; justify-content: center;
     background: rgba(255, 0, 0, 0.25);
-    animation: flash 0.3s infinite;
+    animation: flash 0.2s infinite;
 }
-
 @keyframes flash { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
-
