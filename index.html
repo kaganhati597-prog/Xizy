@@ -10,16 +10,25 @@
 <body>
 
     <div id="game-container">
+        <div id="boss-area">
+            <div id="boss-character"></div>
+            <div id="speech-bubble">Yükleniyor...</div>
+        </div>
+
         <div id="battle-box">
             <div id="player-soul"></div>
         </div>
 
         <div id="ui-container">
-            <div id="dialogue-box">Yükleniyor...</div>
             <div id="hp-bar-container">
                 <span>HP: </span>
                 <div id="hp-bar"></div>
                 <span id="hp-text">500 / 500</span>
+            </div>
+
+            <div id="undertale-menu" class="hidden">
+                <button id="btn-fight" class="menu-btn">[ FIGHT ]</button>
+                <button id="btn-heal" class="menu-btn">[ HEAL ]</button>
             </div>
         </div>
     </div>
