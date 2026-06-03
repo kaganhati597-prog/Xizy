@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Xizy Boss Fight</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/nipplejs/0.10.1/nipplejs.min.js"></script>
+</head>
+<body>
+
+    <div id="game-container">
+        <div id="battle-box">
+            <div id="player-soul"></div>
+        </div>
+
+        <div id="ui-container">
+            <div id="dialogue-box">Yükleniyor...</div>
+            <div id="hp-bar-container">
+                <span>HP: </span>
+                <div id="hp-bar"></div>
+                <span id="hp-text">500 / 500</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="mobile-controls">
+        <div id="joystick-zone"></div>
+        <div id="action-buttons">
+            <button id="btn-z" class="mobile-btn">Z</button>
+            <button id="btn-x" class="mobile-btn">X</button>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>
