@@ -2,7 +2,7 @@
 body {
     margin: 0;
     padding: 0;
-    background-color: #000; /* Klasik Undertale siyah arka planı */
+    background-color: #000;
     color: #fff;
     font-family: 'Courier New', Courier, monospace;
     overflow: hidden;
@@ -23,44 +23,56 @@ body {
 
 /* Savaş Kutusu (Battle Box) */
 #battle-box {
-    width: 400px;  /* JS kodundaki sınırlandırmalara uygun genişlik */
-    height: 200px; /* JS kodundaki sınırlandırmalara uygun yükseklik */
-    border: 4px solid #fff; /* Klasik beyaz kalın çerçeve */
+    width: 400px;
+    height: 200px;
+    border: 4px solid #fff;
     background-color: #000;
     position: relative;
-    overflow: hidden; /* Kemiklerin kutu dışına taşmaması için */
-    margin-top: 60px; /* Boss isminin altında durması için boşluk */
+    overflow: hidden;
+    margin-top: 60px;
 }
 
-/* Oyuncunun Ruhu (Kırmızı Kalp) */
+/* Kırmızı Kalp Ruhu (CSS Çizimi) */
 #player-soul {
     width: 16px;
     height: 16px;
-    background-color: #ff0000; /* Undertale Kırmızı Kararlılık Ruhu */
     position: absolute;
-    /* JS içinden x ve y değerlerine göre dinamik olarak hareket ettirilecek */
+    background-color: #ff0000;
+    transform: rotate(-45deg);
     transition: background-color 0.1s ease;
 }
 
-/* Arayüz Konteyneri (Diyalog ve Can Barı) */
+#player-soul::before,
+#player-soul::after {
+    content: "";
+    width: 16px;
+    height: 16px;
+    background-color: #ff0000;
+    border-radius: 50%;
+    position: absolute;
+}
+
+#player-soul::before { top: -8px; left: 0; }
+#player-soul::after { left: 8px; top: 0; }
+
+/* Arayüz ve Diyalog Alanı */
 #ui-container {
     width: 400px;
     margin-top: 15px;
 }
 
-/* Diyalog Kutusu (Dialogue Box) */
 #dialogue-box {
     border: 4px solid #fff;
     padding: 10px;
-    min-height: 60px;
-    font-size: 16px;
+    min-height: 70px;
+    font-size: 14px;
     background-color: #000;
     line-height: 1.4;
     margin-bottom: 10px;
     box-sizing: border-box;
 }
 
-/* Can Barı Sistemi */
+/* Can Barı */
 #hp-bar-container {
     display: flex;
     align-items: center;
@@ -68,35 +80,25 @@ body {
     font-weight: bold;
 }
 
-#hp-bar-container span {
-    margin-right: 10px;
-}
+#hp-bar-container span { margin-right: 10px; }
 
-/* Can barının arkasındaki boş/kırmızı alan */
 #hp-bar {
-    width: 150px; /* JS'deki 'percentage' hesabına tam uyan genişlik */
+    width: 150px;
     height: 20px;
-    background-color: #ff0000; /* Can azaldıkça arkada kalan kırmızı */
+    background-color: #ff0000;
     position: relative;
 }
 
-/* Gerçek sarı can barı */
 #hp-bar::after {
     content: '';
     position: absolute;
-    left: 0;
-    top: 0;
-    height: 100%;
-    width: 100%;
-    background-color: #ffff00; /* Klasik sarı Undertale HP rengi */
-    /* Genişliği JavaScript içindeki hpBar.style.width yönetecek */
+    left: 0; top: 0; height: 100%; width: 100%;
+    background-color: #ffff00;
 }
 
-#hp-text {
-    margin-left: 15px;
-}
+#hp-text { margin-left: 15px; }
 
-/* Mobil Kontroller ve Joystick Düzeni */
+/* Mobil Kontroller */
 #mobile-controls {
     position: fixed;
     bottom: 20px;
@@ -105,25 +107,13 @@ body {
     display: flex;
     justify-content: space-around;
     align-items: center;
-    padding: 0 10px;
     box-sizing: border-box;
     z-index: 999;
 }
 
-/* Sanal Joystick Alanı */
-#joystick-zone {
-    width: 120px;
-    height: 120px;
-    position: relative;
-}
+#joystick-zone { width: 120px; height: 120px; position: relative; }
+#action-buttons { display: flex; gap: 20px; }
 
-/* Buton Grubu (Z ve X) */
-#action-buttons {
-    display: flex;
-    gap: 20px;
-}
-
-/* Mobil Butonların Tasarımı */
 .mobile-btn {
     width: 60px;
     height: 60px;
@@ -132,34 +122,62 @@ body {
     color: #fff;
     font-size: 20px;
     font-weight: bold;
-    font-family: 'Courier New', Courier, monospace;
     border-radius: 50%;
     cursor: pointer;
     outline: none;
 }
 
-/* Butona basıldığında renkleri tersine çevir (Görseldeki .mobile-btn:active kodu) */
 .mobile-btn:active {
     background-color: #fff;
     color: #000;
 }
 
-/* Boss Karakteri Efektleri (Xizy İsmi) */
+/* Xizy Boss İsmi ve Animasyonu */
 #boss-character {
     font-family: 'Courier New', Courier, monospace;
     letter-spacing: 2px;
-    text-shadow: 0 0 8px #fff; /* Parlayarak süzülmesi için hafif glow */
+    text-shadow: 0 0 8px #fff;
     animation: float 3s ease-in-out infinite;
 }
 
-/* Ekran görüntüsündeki süzülme animasyonu */
 @keyframes float {
     0% { transform: translate(-50%, 0px); }
     50% { transform: translate(-50%, -10px); }
     100% { transform: translate(-50%, 0px); }
 }
 
-/* Mermi ve Saldırı Objeleri */
+/* --- SALDIRI TASARIMLARI --- */
 .projectile {
+    position: absolute;
     border-radius: 2px;
+}
+
+/* Beyaz Kemik */
+.projectile.bone {
+    background-color: #ffffff;
+    border-radius: 4px 4px 4px 4px;
+}
+
+/* Mavi Lazer (Blaster) */
+.projectile.blaster {
+    background-color: #00ffff;
+    box-shadow: 0 0 8px #00ffff;
+}
+
+/* Gri Ok (Mızrak / Spear) */
+.projectile.spear {
+    background-color: #888888;
+}
+.projectile.spear::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 0;
+    border-style: solid;
+}
+.projectile.spear::after {
+    top: -10px;
+    left: -5px;
+    border-width: 0 10px 10px 10px;
+    border-color: transparent transparent #888888 transparent;
 }
