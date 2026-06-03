@@ -1,0 +1,16 @@
+#boss-character {
+    font-family: 'Courier New', Courier, monospace;
+    letter-spacing: 2px;
+    animation: float 3s ease-in-out infinite;
+}
+
+/* Boss havada süzülsün efekti */
+@keyframes float {
+    0% { transform: translate(-50%, 0px); }
+    50% { transform: translate(-50%, -10px); }
+    100% { transform: translate(-50%, 0px); }
+}
+
+.projectile {
+    border-radius: 2px;
+}
