@@ -1,160 +1,134 @@
-// Oyun Değişkenleri
 let player = { x: 192, y: 90, speed: 4, normalSpeed: 4, slowSpeed: 2, hp: 500, maxHp: 500 };
 let keys = {};
 let bossData = null;
 let projectiles = []; 
 let attackInterval = null;
+let waveTimer = null;
+let isPlayerTurn = false;
 
-// HTML Elementleri
 const soul = document.getElementById('player-soul');
 const battleBox = document.getElementById('battle-box');
-const dialogueBox = document.getElementById('dialogue-box');
+const speechBubble = document.getElementById('speech-bubble');
 const hpBar = document.getElementById('hp-bar');
 const hpText = document.getElementById('hp-text');
+const menu = document.getElementById('undertale-menu');
 
-// 1. JSON VERİLERİNİ BAĞLAMA VE ÇEKME
 fetch('Xizy.json')
     .then(response => response.json())
     .then(data => {
         bossData = data;
         initGame();
-    })
-    .catch(err => {
-        console.error("JSON yüklenemedi!", err);
-        dialogueBox.innerText = "Hata: Xizy.json dosyası okunamadı!";
     });
 
 function initGame() {
-    if(!bossData) return;
-
-    // JSON dosyasındaki can değerini (500) otomatik senkronize et
     player.maxHp = bossData.dfg4554fg22.aaabgfb;
     player.hp = player.maxHp;
     updateHPUI();
+    
+    window.addEventListener('keydown', (e) => { keys[e.key.toLowerCase()] = true; });
+    window.addEventListener('keyup', (e) => { keys[e.key.toLowerCase()] = false; });
 
-    // Savaş alanının üstüne JSON'dan gelen Boss ismini (Xizy) yerleştir
-    createBossElement();
-
-    // Sistemleri ve Döngüleri Başlat
     gameLoop();
     startDialogueRoutine();
-    startAttackWaves(); 
+    startBossTurn(); 
 }
 
-function createBossElement() {
-    const boss = document.createElement('div');
-    boss.id = 'boss-character';
-    boss.style.position = 'absolute';
-    boss.style.top = '20px';
-    boss.style.left = '50%';
-    boss.style.transform = 'translateX(-50%)';
-    boss.style.fontSize = '24px';
-    boss.style.fontWeight = 'bold';
-    boss.style.color = '#fff';
-    boss.innerText = bossData.b; // JSON dosyasındaki "Xizy" ismi
-    document.getElementById('game-container').prepend(boss);
-}
-
-// 2. KONTROLLER (Klavye & Mobil)
-window.addEventListener('keydown', (e) => { keys[e.key.toLowerCase()] = true; });
-window.addEventListener('keyup', (e) => { keys[e.key.toLowerCase()] = false; });
-
-function handleInputs() {
-    // X tuşuna basılı tutulursa ruh yavaşlar (Undertale Focus modu)
-    player.speed = keys['x'] ? player.slowSpeed : player.normalSpeed;
-
-    if (keys['arrowup'] || keys['w']) player.y -= player.speed;
-    if (keys['arrowdown'] || keys['s']) player.y += player.speed;
-    if (keys['arrowleft'] || keys['a']) player.x -= player.speed;
-    if (keys['arrowright'] || keys['d']) player.x += player.speed;
-}
-
-// Mobil Joystick (Nipple.js)
-const joystick = nipplejs.create({
-    zone: document.getElementById('joystick-zone'),
-    mode: 'static',
-    position: { left: '50%', top: '50%' },
-    color: 'red'
-});
-let joystickData = null;
-joystick.on('move', (evt, data) => { joystickData = data; });
-joystick.on('end', () => { joystickData = null; });
-
-function handleJoystick() {
-    if (!joystickData || !joystickData.vector) return;
-    player.x += joystickData.vector.x * player.speed;
-    player.y -= joystickData.vector.y * player.speed;
-}
-
-// Z ve X Mobil Butonları Dinleyicileri
-document.getElementById('btn-x').addEventListener('touchstart', () => { keys['x'] = true; });
-document.getElementById('btn-x').addEventListener('touchend', () => { keys['x'] = false; });
-
-// 3. DOSYADAN DİYALOG ÇEKME RUTİNİ
-function startDialogueRoutine() {
-    // İlk açılışta JSON'daki ilk cümleyi yazdır
-    if(bossData.f && bossData.f.length > 0) {
-        dialogueBox.innerText = bossData.b + ": " + bossData.f[0];
-    }
+function startBossTurn() {
+    isPlayerTurn = false;
+    menu.classList.add('hidden');
+    soul.style.display = 'block';
     
-    // Her 5 saniyede bir JSON dosyasındaki rastgele bir lafı ekrana getirir
-    setInterval(() => {
-        if(player.hp <= 0) return;
-        const dialogues = bossData.f; 
-        const randomText = dialogues[Math.floor(Math.random() * dialogues.length)];
-        dialogueBox.innerText = bossData.b + ": " + randomText;
-    }, 5000);
+    attackInterval = setInterval(() => {
+        let types = ['bone', 'blaster', 'spear'];
+        let randomType = types[Math.floor(Math.random() * types.length)];
+        createProjectile(randomType);
+    }, 800); 
+
+    waveTimer = setTimeout(() => {
+        endBossTurn();
+    }, 20000); 
 }
 
-// 4. TÜM SALDIRILARIN YÖNETİMİ (Kemik, Blaster, Mızrak)
-function startAttackWaves() {
-    attackInterval = setInterval(() => {
-        if(player.hp <= 0) return;
-        
-        // Rastgele bir saldırı tipi seçiliyor
-        const rand = Math.random();
-        let type = 'bone';
-        if (rand > 0.33 && rand < 0.66) {
-            type = 'blaster';
-        } else if (rand >= 0.66) {
-            type = 'spear';
-        }
-        
-        createProjectile(type);
-    }, 1200); // Saldırı hızı zamanlaması (1.2 saniye)
+function endBossTurn() {
+    clearInterval(attackInterval);
+    clearTimeout(waveTimer);
+    projectiles.forEach(p => p.element.remove());
+    projectiles = [];
+    
+    isPlayerTurn = true;
+    soul.style.display = 'none';
+    menu.classList.remove('hidden');
+    speechBubble.innerText = "Sıra sende, ne yapacaksın?";
 }
+
+document.getElementById('btn-fight').addEventListener('click', () => {
+    if(!isPlayerTurn) return;
+    speechBubble.innerText = "Xizy'ye saldırdın! 150 Hasar verildi!";
+    setTimeout(() => { startBossTurn(); }, 2000);
+});
+
+document.getElementById('btn-heal').addEventListener('click', () => {
+    if(!isPlayerTurn) return;
+    player.hp += 150;
+    if (player.hp > player.maxHp) player.hp = player.maxHp;
+    updateHPUI();
+    speechBubble.innerText = "150 HP Yenilendi! Kendini kararlı hissediyorsun.";
+    setTimeout(() => { startBossTurn(); }, 2000);
+});
 
 function createProjectile(type) {
     const projectile = document.createElement('div');
     projectile.classList.add('projectile', type);
     
     let pX, pY, speedX, speedY;
-    let w, h;
+    let w = 15, h = 15;
 
     if (type === 'bone') {
-        // Aşağıdan yukarı çıkan BEYAZ KEMİK
-        pX = Math.random() * (battleBox.clientWidth - 15);
+        w = 12; h = 40;
+        pX = Math.random() * (battleBox.clientWidth - w);
         pY = battleBox.clientHeight;
-        speedX = 0;
-        speedY = -3.5; 
-        w = 12;
-        h = 50;
+        speedX = 0; speedY = -3;
     } else if (type === 'blaster') {
-        // Sağdan sola uçan MAVİ LAZER (Blaster mermisi)
+        w = 20; h = 20;
         pX = battleBox.clientWidth;
-        pY = Math.random() * (battleBox.clientHeight - 20);
-        speedX = -6; 
-        speedY = 0;
-        w = 30;
-        h = 12;
-    } else {
-        // Yukarıdan aşağıya inen GRİ OK (Mızrak / Spear)
-        pX = Math.random() * (battleBox.clientWidth - 10);
-        pY = -40;
-        speedX = 0;
-        speedY = 4;
-        w = 4;
-        h = 25;
+        pY = Math.random() * (battleBox.clientHeight - h);
+        speedX = -5; speedY = 0;
+    } else if (type === 'spear') {
+        // --- 8 YÖNLÜ DOĞMA VE KALBE KİLİTLENME SİSTEMİ ---
+        w = 6; h = 25;
+        let direction = Math.floor(Math.random() * 8); 
+        
+        // Okun başlangıç koordinatlarını 8 köşeye göre ayarla
+        switch(direction) {
+            case 0: pX = battleBox.clientWidth / 2; pY = -30; break; // Üst
+            case 1: pX = battleBox.clientWidth + 30; pY = battleBox.clientHeight / 2; break; // Sağ
+            case 2: pX = battleBox.clientWidth / 2; pY = battleBox.clientHeight + 30; break; // Alt
+            case 3: pX = -30; pY = battleBox.clientHeight / 2; break; // Sol
+            case 4: pX = -30; pY = -30; break; // Sol Üst Çapraz
+            case 5: pX = battleBox.clientWidth + 30; pY = -30; break; // Sağ Üst Çapraz
+            case 6: pX = battleBox.clientWidth + 30; pY = battleBox.clientHeight + 30; break; // Sağ Alt Çapraz
+            case 7: pX = -30; pY = battleBox.clientHeight + 30; break; // Sol Alt Çapraz
+        }
+
+        // Okun merkezini hesapla
+        let arrowCenterX = pX + w / 2;
+        let arrowCenterY = pY + h / 2;
+        
+        // Kalbin (Ruhun) o anki konumunu merkez al
+        let targetX = player.x + 8;
+        let targetY = player.y + 8;
+
+        // Matematiksel Açı Hesaplama (Aimbot Mantığı)
+        let angle = Math.atan2(targetY - arrowCenterY, targetX - arrowCenterX);
+
+        // Sabit hız vektörü (Hız: 3.5 birim)
+        let arrowSpeed = 3.5;
+        speedX = Math.cos(angle) * arrowSpeed;
+        speedY = Math.sin(angle) * arrowSpeed;
+
+        // Görsel olarak okun ucunu kalbe doğru döndürme (Radyanı dereceye çevirip +90 derece ekleme)
+        let degrees = angle * (180 / Math.PI) + 90;
+        projectile.style.transform = `rotate(${degrees}deg)`;
     }
 
     projectile.style.width = w + 'px';
@@ -163,91 +137,108 @@ function createProjectile(type) {
     projectile.style.top = pY + 'px';
     battleBox.appendChild(projectile);
 
-    projectiles.push({
-        element: projectile,
-        x: pX,
-        y: pY,
-        sx: speedX,
-        sy: speedY,
-        width: type === 'spear' ? 14 : w, 
-        height: h
+    projectiles.push({ element: projectile, x: pX, y: pY, sx: speedX, sy: speedY, width: w, height: h });
+}
+
+let joystickManager = null;
+window.addEventListener('touchstart', (e) => {
+    if (isPlayerTurn) return;
+    if (e.target.closest('#action-buttons')) return;
+
+    if (joystickManager) joystickManager.destroy();
+
+    let touch = e.touches[0];
+    const zone = document.getElementById('joystick-zone');
+    zone.style.left = (touch.clientX - 50) + 'px';
+    zone.style.top = (touch.clientY - 50) + 'px';
+
+    joystickManager = nipplejs.create({
+        zone: zone, mode: 'static',
+        position: { left: '50%', top: '50%' }, color: 'red'
     });
+
+    joystickManager.on('move', (evt, data) => { window.joystickData = data; });
+    joystickManager.on('end', () => { window.joystickData = null; });
+});
+
+function handleInputs() {
+    if (isPlayerTurn) return;
+    let speed = keys['x'] ? player.slowSpeed : player.normalSpeed;
+
+    if (keys['arrowup'] || keys['w']) player.y -= speed;
+    if (keys['arrowdown'] || keys['s']) player.y += speed;
+    if (keys['arrowleft'] || keys['a']) player.x -= speed;
+    if (keys['arrowright'] || keys['d']) player.x += speed;
+
+    if (window.joystickData && window.joystickData.vector) {
+        player.x += window.joystickData.vector.x * speed;
+        player.y -= window.joystickData.vector.y * speed;
+    }
 }
 
 function updateProjectiles() {
     for (let i = projectiles.length - 1; i >= 0; i--) {
         let p = projectiles[i];
-        p.x += p.sx;
-        p.y += p.sy;
-        p.element.style.left = p.x + 'px';
-        p.element.style.top = p.y + 'px';
+        p.x += p.sx; p.y += p.sy;
+        p.element.style.left = p.x + 'px'; p.element.style.top = p.y + 'px';
 
-        // Kalp Çarpışma Testi
-        if (player.x < p.x + p.width && player.x + 16 > p.x &&
+        if (!isPlayerTurn && player.x < p.x + p.width && player.x + 16 > p.x &&
             player.y < p.y + p.height && player.y + 16 > p.y) {
-            
-            takeDamage(15); // İsabet halinde hasar miktarı
+            takeDamage(10);
             p.element.remove();
             projectiles.splice(i, 1);
             continue;
         }
 
-        // Ekrandan çıkan mermileri bellekten silme
-        if (p.x < -60 || p.x > battleBox.clientWidth + 60 || p.y < -60 || p.y > battleBox.clientHeight + 60) {
+        if (p.x < -120 || p.x > battleBox.clientWidth + 120 || p.y < -120 || p.y > battleBox.clientHeight + 120) {
             p.element.remove();
             projectiles.splice(i, 1);
         }
     }
 }
 
-// 5. CAN VE OYUN BİTTİ SİSTEMLERİ
+function startDialogueRoutine() {
+    setInterval(() => {
+        if(player.hp <= 0 || isPlayerTurn) return;
+        const dialogues = bossData.f;
+        speechBubble.innerText = dialogues[Math.floor(Math.random() * dialogues.length)];
+    }, 4000);
+}
+
 function takeDamage(amount) {
-    if(player.hp <= 0) return;
     player.hp -= amount;
     if (player.hp < 0) player.hp = 0;
     updateHPUI();
-
-    // Kalbin hasar alınca beyaz yanıp sönmesi
     soul.style.backgroundColor = '#fff';
     setTimeout(() => { soul.style.backgroundColor = '#ff0000'; }, 100);
-
-    if (player.hp === 0) {
-        gameOver();
-    }
+    if (player.hp === 0) gameOver();
 }
 
 function updateHPUI() {
     hpText.innerText = `${player.hp} / ${player.maxHp}`;
-    const percentage = (player.hp / player.maxHp) * 150; 
-    hpBar.style.width = percentage + 'px';
+    hpBar.style.width = ((player.hp / player.maxHp) * 150) + 'px';
 }
 
 function gameOver() {
     clearInterval(attackInterval);
-    // JSON dosyasında ayarladığın o özel Game Over lafını ("İt was hard, right?") buraya çeker
-    dialogueBox.innerHTML = `<span style="color:red; font-weight:bold;">GAME OVER</span><br>${bossData.goMsg}`;
+    clearTimeout(waveTimer);
+    speechBubble.innerHTML = `<span style="color:red;">GAME OVER</span><br>${bossData.goMsg}`;
     soul.style.display = 'none';
 }
 
 function checkBoundaries() {
-    const soulSize = 16;
     if (player.x < 0) player.x = 0;
-    if (player.x > battleBox.clientWidth - soulSize) player.x = battleBox.clientWidth - soulSize;
+    if (player.x > battleBox.clientWidth - 16) player.x = battleBox.clientWidth - 16;
     if (player.y < 0) player.y = 0;
-    if (player.y > battleBox.clientHeight - soulSize) player.y = battleBox.clientHeight - soulSize;
+    if (player.y > battleBox.clientHeight - 16) player.y = battleBox.clientHeight - 16;
 }
 
 function gameLoop() {
-    if (player.hp > 0) {
-        handleInputs();
-        handleJoystick();
-        updateProjectiles();
-        checkBoundaries();
-
-        soul.style.left = player.x + 'px';
-        soul.style.top = player.y + 'px';
-        
-        requestAnimationFrame(gameLoop);
-    }
+    handleInputs();
+    updateProjectiles();
+    checkBoundaries();
+    soul.style.left = player.x + 'px';
+    soul.style.top = player.y + 'px';
+    requestAnimationFrame(gameLoop);
 }
 
